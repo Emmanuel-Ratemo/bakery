@@ -31,16 +31,19 @@
             @if (item.theme) {
               <p class="line__flavour">Theme: {{ item.theme }}</p>
             }
+            @if (item.product.pricedBy === 'kg') {
+              <p class="line__flavour">Size: {{ formatWeight(item.weightKg) }}</p>
+            }
             <p class="line__flavour">Flavour: {{ item.flavour }}</p>
             @if (item.customMessage) {
-              <p class="line__extra">Message: “{{ item.customMessage }}”</p>
+              <p class="line__extra">Message: "{{ item.customMessage }}"</p>
             }
             @if (item.allergyNotes) {
               <p class="line__extra">Allergy notes: {{ item.allergyNotes }}</p>
             }
-            <p class="line__allergens">Contains: {{ item.product.allergies.join(', ') }}</p>
+            <p class="line__allergens">Contains: {{ allergensText(item) }}</p>
             <p class="line__price">
-              {{ item.product.price * item.quantity | currency: 'KES':'symbol-narrow':'1.0-0' }}
+              {{ item.unitPrice * item.quantity | currency: 'KES':'symbol-narrow':'1.0-0' }}
             </p>
             <div class="line__qty">
               <button type="button" (click)="cart.decrease(item.lineId)" aria-label="Decrease">−</button>

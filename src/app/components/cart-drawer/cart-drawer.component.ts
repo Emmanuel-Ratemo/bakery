@@ -1,6 +1,8 @@
 import { CurrencyPipe } from '@angular/common';
 import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { formatWeight } from '../../data/products';
+import { CartItem } from '../../models/product.model';
 import { CartService } from '../../services/cart.service';
 
 @Component({
@@ -15,6 +17,14 @@ export class CartDrawerComponent {
   customerName = '';
   note = '';
   readonly ordered = signal(false);
+
+  formatWeight(kg: number): string {
+    return formatWeight(kg);
+  }
+
+  allergensText(item: CartItem): string {
+    return item.product.allergies.join(', ');
+  }
 
   order(): void {
     if (!this.cart.items().length) return;

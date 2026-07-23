@@ -20,18 +20,55 @@ const MUFFIN_FLAVOURS = [
 const CAKE_ALLERGIES = ['Eggs', 'Milk / Dairy', 'Wheat / Gluten', 'Soy'];
 const NUT_ALLERGIES = [...CAKE_ALLERGIES, 'Tree nuts'];
 
+/** Cake sizes available at checkout */
+export const CAKE_WEIGHTS_KG = [0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5] as const;
+
+/** Extra KES for cartoon / custom themes on birthday cakes (not Classic) */
+export const THEME_SURCHARGE_KES = 1500;
+
+export const PLAIN_BIRTHDAY_THEME = 'Classic Birthday';
+
+export function isThemedBirthday(theme: string): boolean {
+  const t = theme.trim();
+  return !!t && t !== PLAIN_BIRTHDAY_THEME;
+}
+
+export function calcUnitPrice(
+  product: Product,
+  weightKg: number,
+  theme = ''
+): number {
+  if (product.pricedBy === 'piece') {
+    return product.pricePerUnit;
+  }
+
+  const kg = Math.max(0.5, weightKg);
+  const base = Math.round(product.pricePerUnit * kg);
+  const themeExtra =
+    product.themes?.length && isThemedBirthday(theme) ? THEME_SURCHARGE_KES : 0;
+  return base + themeExtra;
+}
+
+export function formatWeight(kg: number): string {
+  return kg === 0.5 ? '½ kg' : `${kg} kg`;
+}
+
+/**
+ * Kenya mid-market rates (Nairobi, ~2026): plain cakes ~2,200–2,800/kg;
+ * muffins ~KSh 200–300 each. Theme add-on applied separately.
+ */
 export const PRODUCTS: Product[] = [
   {
     id: 'birthday',
     name: 'Birthday Cake',
-    description:
-      'Celebration cake with your choice of cartoon theme or a fully custom design.',
-    price: 3500,
+    description: 'Priced per kg and theme.',
+    pricePerUnit: 2200,
+    pricedBy: 'kg',
     category: 'Birthday',
     flavours: CAKE_FLAVOURS,
     allergies: CAKE_ALLERGIES,
     themes: [
-      'Classic Birthday',
+      PLAIN_BIRTHDAY_THEME,
       'Elsa (Frozen)',
       'Sofia the First',
       'SpongeBob',
@@ -44,9 +81,9 @@ export const PRODUCTS: Product[] = [
   {
     id: 'chocolate',
     name: 'Chocolate Cake',
-    description:
-      'Rich chocolate sponge with chocolate buttercream — a classic favourite.',
-    price: 3200,
+    description: 'Priced per kg.',
+    pricePerUnit: 2500,
+    pricedBy: 'kg',
     category: 'Chocolate',
     flavours: ['Dark Chocolate', 'Milk Chocolate', 'Chocolate Fudge', 'Chocolate Orange'],
     allergies: NUT_ALLERGIES,
@@ -56,9 +93,9 @@ export const PRODUCTS: Product[] = [
   {
     id: 'strawberry',
     name: 'Strawberry Cake',
-    description:
-      'Light sponge layered with fresh strawberries and whipped cream.',
-    price: 3200,
+    description: 'Priced per kg.',
+    pricePerUnit: 2400,
+    pricedBy: 'kg',
     category: 'Strawberry',
     flavours: ['Strawberry Cream', 'Vanilla Strawberry', 'Strawberry Shortcake'],
     allergies: CAKE_ALLERGIES,
@@ -68,8 +105,9 @@ export const PRODUCTS: Product[] = [
   {
     id: 'red-velvet',
     name: 'Red Velvet Cake',
-    description: 'Soft red velvet layers with classic cream cheese frosting.',
-    price: 3400,
+    description: 'Priced per kg.',
+    pricePerUnit: 2800,
+    pricedBy: 'kg',
     category: 'Cakes',
     flavours: ['Classic Red Velvet', 'Red Velvet with White Chocolate'],
     allergies: CAKE_ALLERGIES,
@@ -79,8 +117,9 @@ export const PRODUCTS: Product[] = [
   {
     id: 'vanilla',
     name: 'Vanilla Cake',
-    description: 'Fluffy vanilla sponge with buttercream — simple and elegant.',
-    price: 2800,
+    description: 'Priced per kg.',
+    pricePerUnit: 2200,
+    pricedBy: 'kg',
     category: 'Cakes',
     flavours: ['Madagascar Vanilla', 'Vanilla Bean', 'Vanilla with Berry Filling'],
     allergies: CAKE_ALLERGIES,
@@ -90,9 +129,9 @@ export const PRODUCTS: Product[] = [
   {
     id: 'muffins',
     name: 'Fresh Muffins',
-    description:
-      'Soft bakery muffins — order by the piece or as a party box. Choose your flavour.',
-    price: 250,
+    description: 'Priced per piece.',
+    pricePerUnit: 250,
+    pricedBy: 'piece',
     category: 'Muffins',
     flavours: MUFFIN_FLAVOURS,
     allergies: CAKE_ALLERGIES,

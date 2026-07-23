@@ -4,7 +4,11 @@ import {
   CartItem,
   Product,
 } from '../models/product.model';
-import { WHATSAPP_NUMBER } from '../data/products';
+import {
+  WHATSAPP_NUMBER,
+  calcUnitPrice,
+  formatWeight,
+} from '../data/products';
 
 function cleanText(value: string, max = 120): string {
   return value
@@ -25,7 +29,7 @@ export class CartService {
   );
   readonly total = computed(() =>
     this.itemsSignal().reduce(
-      (sum, item) => sum + item.product.price * item.quantity,
+      (sum, item) => sum + item.unitPrice * item.quantity,
       0
     )
   );
@@ -49,8 +53,13 @@ export class CartService {
     const theme = cleanText(options.theme ?? '', 60);
     if (product.themes?.length && !theme) return;
 
+    const weightKg =
+      product.pricedBy === 'kg' ? (options.weightKg ?? 1) : 0;
+    if (product.pricedBy === 'kg' && (weightKg < 0.5 || weightKg > 5)) return;
+
     const allergyNotes = cleanText(options.allergyNotes ?? '', 120);
     const customMessage = cleanText(options.customMessage ?? '', 80);
+    const unitPrice = calcUnitPrice(product, weightKg || 1, theme);
 
     this.itemsSignal.update((items) => {
       const existing = items.find(
@@ -58,6 +67,7 @@ export class CartService {
           i.product.id === product.id &&
           i.flavour === flavour &&
           i.theme === theme &&
+          i.weightKg === weightKg &&
           i.allergyNotes === allergyNotes &&
           i.customMessage === customMessage
       );
@@ -76,6 +86,8 @@ export class CartService {
         quantity: 1,
         flavour,
         theme,
+        weightKg,
+        unitPrice,
         allergyNotes,
         customMessage,
       };
@@ -121,9 +133,10 @@ export class CartService {
     const extraNote = cleanText(note, 120);
 
     const lines = items.flatMap((i) => {
-      const title = i.theme
-        ? `• ${i.quantity}x ${i.product.name} — ${i.theme} (${i.flavour}) — KSh ${(i.product.price * i.quantity).toLocaleString()}`
-        : `• ${i.quantity}x ${i.product.name} (${i.flavour}) — KSh ${(i.product.price * i.quantity).toLocaleString()}`;
+      const size =
+        i.product.pricedBy === 'kg' ? ` · ${formatWeight(i.weightKg)}` : '';
+      const themeBit = i.theme ? ` — ${i.theme}` : '';
+      const title = `• ${i.quantity}x ${i.product.name}${themeBit}${size} (${i.flavour}) — KSh ${(i.unitPrice * i.quantity).toLocaleString()}`;
 
       const block = [title, `  Allergens: ${i.product.allergies.join(', ')}`];
       if (i.customMessage) block.push(`  Cake message: "${i.customMessage}"`);

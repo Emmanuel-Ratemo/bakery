@@ -1,7 +1,7 @@
 <section class="products" id="products">
   <h2 class="section-title">Top Products</h2>
   <p class="products__intro">
-    Birthday themes, classic cakes, and muffins — pick options when you add to cart.
+    Birthday cakes are priced per kg and theme. Other cakes are priced per kg.
   </p>
 
   <div class="products__grid">
@@ -14,7 +14,8 @@
         <div class="card__bar">
           <div class="card__meta">
             <p class="card__price">
-              {{ product.price | currency: 'KES':'symbol-narrow':'1.0-0' }}
+              {{ startingPrice(product) | currency: 'KES':'symbol-narrow':'1.0-0' }}
+              <span class="card__unit">{{ priceHint(product) }}</span>
             </p>
             <h3 class="card__name">{{ product.name }}</h3>
           </div>
@@ -39,12 +40,35 @@
     </div>
 
     <p class="sheet__price">
-      {{ product.price | currency: 'KES':'symbol-narrow':'1.0-0' }}
+      {{ currentPrice() | currency: 'KES':'symbol-narrow':'1.0-0' }}
     </p>
+    @if (showThemeExtra()) {
+      <p class="sheet__surcharge">Includes +{{ themeSurcharge | currency: 'KES':'symbol-narrow':'1.0-0' }} theme fee</p>
+    }
+
+    @if (product.pricedBy === 'kg') {
+      <div class="sheet__block">
+        <h4>Size</h4>
+        <div class="flavour-options">
+          @for (kg of weights; track kg) {
+            <label class="flavour-option">
+              <input
+                type="radio"
+                name="weight"
+                [value]="kg"
+                [(ngModel)]="selectedWeight"
+              />
+              <span>{{ formatWeight(kg) }}</span>
+            </label>
+          }
+        </div>
+      </div>
+    }
 
     @if (product.themes?.length) {
       <div class="sheet__block">
         <h4>Theme</h4>
+        <p class="sheet__hint">Classic Birthday = plain rate. Other themes +{{ themeSurcharge | currency: 'KES':'symbol-narrow':'1.0-0' }}</p>
         <div class="flavour-options">
           @for (theme of product.themes; track theme) {
             <label class="flavour-option">
@@ -124,7 +148,7 @@
     </label>
 
     <button type="button" class="sheet__confirm" (click)="confirmAdd()" [disabled]="!canAdd()">
-      Add to cart
+      Add to cart · {{ currentPrice() | currency: 'KES':'symbol-narrow':'1.0-0' }}
     </button>
   </div>
 }
