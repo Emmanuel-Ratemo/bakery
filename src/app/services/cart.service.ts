@@ -93,8 +93,12 @@ export class CartService {
       };
       return [...items, line];
     });
+  }
 
-    this.open.set(true);
+  quantityFor(productId: string): number {
+    return this.itemsSignal()
+      .filter((i) => i.product.id === productId)
+      .reduce((sum, i) => sum + i.quantity, 0);
   }
 
   increase(lineId: string): void {
@@ -132,29 +136,37 @@ export class CartService {
     const name = cleanText(customerName, 60);
     const extraNote = cleanText(note, 120);
 
-    const lines = items.flatMap((i) => {
-      const size =
-        i.product.pricedBy === 'kg' ? ` · ${formatWeight(i.weightKg)}` : '';
-      const themeBit = i.theme ? ` — ${i.theme}` : '';
-      const title = `• ${i.quantity}x ${i.product.name}${themeBit}${size} (${i.flavour}) — KSh ${(i.unitPrice * i.quantity).toLocaleString()}`;
+    const itemBlocks = items.map((i, index) => {
+      const rows = [
+        `*Item ${index + 1}*`,
+        `Product: ${i.product.name}`,
+        `Qty: ${i.quantity}`,
+      ];
 
-      const block = [title, `  Allergens: ${i.product.allergies.join(', ')}`];
-      if (i.customMessage) block.push(`  Cake message: "${i.customMessage}"`);
-      if (i.allergyNotes) block.push(`  Allergy notes: ${i.allergyNotes}`);
-      return block;
+      if (i.theme) rows.push(`Theme: ${i.theme}`);
+      if (i.product.pricedBy === 'kg') {
+        rows.push(`Size: ${formatWeight(i.weightKg)}`);
+      }
+      rows.push(`Flavour: ${i.flavour}`);
+      if (i.customMessage) rows.push(`Cake message: ${i.customMessage}`);
+      if (i.allergyNotes) rows.push(`Allergy notes: ${i.allergyNotes}`);
+      rows.push(`Price: KSh ${(i.unitPrice * i.quantity).toLocaleString()}`);
+
+      return rows.join('\n');
     });
 
-    const message = [
-      `Hello Bree's Bakery! I'd like to place an order.`,
+    const parts = [
+      `Hello Bree's Bakery!`,
+      `I'd like to place an order.`,
       '',
-      ...lines,
+      itemBlocks.join('\n\n'),
       '',
       `*Total: KSh ${this.total().toLocaleString()}*`,
-      name ? `Name: ${name}` : '',
-      extraNote ? `Note: ${extraNote}` : '',
-    ]
-      .filter(Boolean)
-      .join('\n');
+    ];
+    if (name) parts.push(`Name: ${name}`);
+    if (extraNote) parts.push(`Note: ${extraNote}`);
+
+    const message = parts.join('\n');
 
     const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
     window.open(url, '_blank', 'noopener,noreferrer');

@@ -107,6 +107,13 @@
   color: var(--ink);
 }
 
+.card__in-cart {
+  margin: 0.35rem 0 0;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--pink-deep);
+}
+
 .card__add {
   appearance: none;
   border: 0;

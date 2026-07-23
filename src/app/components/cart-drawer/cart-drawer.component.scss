@@ -56,6 +56,35 @@
 .drawer__empty {
   padding: 2.5rem 1.35rem;
   text-align: center;
+  display: grid;
+  gap: 0.75rem;
+  justify-items: center;
+}
+
+.btn--menu {
+  appearance: none;
+  width: 100%;
+  border: 1.5px solid var(--pink-deep);
+  border-radius: 0.35rem;
+  padding: 0.85rem 1.25rem;
+  background: white;
+  color: var(--pink-deep);
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
+}
+
+.btn--menu:hover {
+  background: var(--pink-mist);
+  transform: translateY(-1px);
+}
+
+.drawer__empty .btn--menu {
+  width: auto;
+  min-width: 10rem;
+  margin-top: 0.35rem;
 }
 
 .drawer__empty p {
@@ -192,6 +221,23 @@
 .field input:focus {
   outline: 2px solid color-mix(in srgb, var(--pink-mid) 55%, transparent);
   border-color: var(--pink-mid);
+}
+
+.field__input--error {
+  border-color: #c62828 !important;
+}
+
+.field__error {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #c62828;
+}
+
+.btn--whatsapp:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+  filter: none;
 }
 
 .drawer__total {

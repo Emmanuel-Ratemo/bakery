@@ -17,6 +17,7 @@ export class CartDrawerComponent {
   customerName = '';
   note = '';
   readonly ordered = signal(false);
+  readonly triedSubmit = signal(false);
 
   formatWeight(kg: number): string {
     return formatWeight(kg);
@@ -26,9 +27,23 @@ export class CartDrawerComponent {
     return item.product.allergies.join(', ');
   }
 
+  canOrder(): boolean {
+    return (
+      this.cart.items().length > 0 &&
+      this.customerName.trim().length > 0 &&
+      this.note.trim().length > 0
+    );
+  }
+
   order(): void {
-    if (!this.cart.items().length) return;
+    this.triedSubmit.set(true);
+    if (!this.canOrder()) return;
     this.cart.orderViaWhatsApp(this.customerName, this.note);
     this.ordered.set(true);
+  }
+
+  addMoreItems(): void {
+    this.cart.closeCart();
+    document.getElementById('products')?.scrollIntoView({ behavior: 'smooth' });
   }
 }

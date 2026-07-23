@@ -18,9 +18,14 @@
               <span class="card__unit">{{ priceHint(product) }}</span>
             </p>
             <h3 class="card__name">{{ product.name }}</h3>
+            @if (cart.quantityFor(product.id) > 0) {
+              <p class="card__in-cart">
+                In cart · {{ cart.quantityFor(product.id) }}
+              </p>
+            }
           </div>
           <button type="button" class="card__add" (click)="openCustomize(product)">
-            Add
+            {{ cart.quantityFor(product.id) > 0 ? 'Add again' : 'Add' }}
           </button>
         </div>
         <p class="card__desc">{{ product.description }}</p>
@@ -148,7 +153,8 @@
     </label>
 
     <button type="button" class="sheet__confirm" (click)="confirmAdd()" [disabled]="!canAdd()">
-      Add to cart · {{ currentPrice() | currency: 'KES':'symbol-narrow':'1.0-0' }}
+      {{ cart.quantityFor(product.id) > 0 ? 'Add again' : 'Add to cart' }}
+      · {{ currentPrice() | currency: 'KES':'symbol-narrow':'1.0-0' }}
     </button>
   </div>
 }
