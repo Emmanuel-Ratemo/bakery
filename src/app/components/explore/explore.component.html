@@ -1,0 +1,28 @@
+<section class="explore" id="explore">
+  <h2 class="section-title">Explore More</h2>
+
+  <div class="explore__tabs" role="tablist" aria-label="Categories">
+    @for (category of categories; track category) {
+      <button
+        type="button"
+        role="tab"
+        class="explore__tab"
+        [class.explore__tab--active]="active() === category"
+        [attr.aria-selected]="active() === category"
+        (click)="select(category)"
+      >
+        {{ category }}
+      </button>
+    }
+  </div>
+
+  <div class="explore__grid">
+    @for (item of items(); track item.id) {
+      <figure class="explore__shot">
+        <img [src]="item.image" [alt]="item.alt" loading="lazy" />
+      </figure>
+    } @empty {
+      <p class="explore__empty">No treats in this category yet.</p>
+    }
+  </div>
+</section>

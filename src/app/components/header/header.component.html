@@ -1,0 +1,32 @@
+<header class="header" [class.header--solid]="scrolled()">
+  <div class="header__inner">
+    <a class="header__brand" href="#" (click)="$event.preventDefault(); goTo('top')">
+      <span class="header__mark" aria-hidden="true">B</span>
+      <span class="header__name">Bree's Bakery</span>
+    </a>
+
+    <nav class="header__nav" aria-label="Primary">
+      <button type="button" class="header__link" (click)="goTo('top')">Home</button>
+      <button type="button" class="header__link" (click)="goTo('products')">Menu</button>
+      <button type="button" class="header__link" (click)="goTo('explore')">Explore</button>
+      <button type="button" class="header__link" (click)="goTo('visit')">Contact</button>
+    </nav>
+
+    <button
+      type="button"
+      class="header__cart"
+      (click)="cart.toggleCart()"
+      [attr.aria-label]="'Open cart, ' + cart.count() + ' items'"
+    >
+      <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.75">
+        <path d="M6 6h15l-1.5 9h-12z" stroke-linejoin="round" />
+        <path d="M6 6 5 3H2" stroke-linecap="round" />
+        <circle cx="9" cy="20" r="1.25" fill="currentColor" stroke="none" />
+        <circle cx="17" cy="20" r="1.25" fill="currentColor" stroke="none" />
+      </svg>
+      @if (cart.count() > 0) {
+        <span class="header__badge">{{ cart.count() }}</span>
+      }
+    </button>
+  </div>
+</header>

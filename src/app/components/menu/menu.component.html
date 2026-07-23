@@ -1,0 +1,38 @@
+<section class="products" id="products">
+  <h2 class="section-title">Top Products</h2>
+
+  <div class="products__grid">
+    @for (product of products; track product.id) {
+      <article class="card">
+        <div class="card__media">
+          <img [src]="product.image" [alt]="product.name" loading="lazy" />
+        </div>
+        <div class="card__bar">
+          <div class="card__meta">
+            <p class="card__price">
+              {{ product.price | currency: 'KES':'symbol-narrow':'1.0-0' }}
+            </p>
+            <h3 class="card__name">{{ product.name }}</h3>
+          </div>
+          <div class="card__actions">
+            <button
+              type="button"
+              class="card__info"
+              (click)="toggleInfo(product.id)"
+              [attr.aria-expanded]="infoId() === product.id"
+              [attr.aria-label]="'About ' + product.name"
+            >
+              i
+            </button>
+            <button type="button" class="card__add" (click)="add(product)">
+              Add
+            </button>
+          </div>
+        </div>
+        @if (infoId() === product.id) {
+          <p class="card__desc">{{ product.description }}</p>
+        }
+      </article>
+    }
+  </div>
+</section>

@@ -1,0 +1,77 @@
+@if (cart.open()) {
+  <div class="overlay" (click)="cart.closeCart()" aria-hidden="true"></div>
+}
+
+<aside
+  class="drawer"
+  [class.drawer--open]="cart.open()"
+  role="dialog"
+  aria-modal="true"
+  aria-label="Your cart"
+>
+  <div class="drawer__head">
+    <h2>Your cart</h2>
+    <button type="button" class="drawer__close" (click)="cart.closeCart()" aria-label="Close cart">
+      ×
+    </button>
+  </div>
+
+  @if (cart.items().length === 0) {
+    <div class="drawer__empty">
+      <p>Your cart is empty.</p>
+      <p class="muted">Add something sweet from the menu.</p>
+    </div>
+  } @else {
+    <ul class="drawer__list">
+      @for (item of cart.items(); track item.product.id) {
+        <li class="line">
+          <img [src]="item.product.image" [alt]="" />
+          <div class="line__meta">
+            <p class="line__name">{{ item.product.name }}</p>
+            <p class="line__price">
+              {{ item.product.price * item.quantity | currency: 'KES':'symbol-narrow':'1.0-0' }}
+            </p>
+            <div class="line__qty">
+              <button type="button" (click)="cart.decrease(item.product.id)" aria-label="Decrease">−</button>
+              <span>{{ item.quantity }}</span>
+              <button type="button" (click)="cart.increase(item.product.id)" aria-label="Increase">+</button>
+              <button type="button" class="line__remove" (click)="cart.remove(item.product.id)">
+                Remove
+              </button>
+            </div>
+          </div>
+        </li>
+      }
+    </ul>
+
+    <div class="drawer__footer">
+      <label class="field">
+        <span>Your name</span>
+        <input type="text" [(ngModel)]="customerName" name="customerName" placeholder="Optional" />
+      </label>
+      <label class="field">
+        <span>Note</span>
+        <input type="text" [(ngModel)]="note" name="note" placeholder="Pickup time, frosting color…" />
+      </label>
+
+      <div class="drawer__total">
+        <span>Total</span>
+        <strong>{{ cart.total() | currency: 'KES':'symbol-narrow':'1.0-0' }}</strong>
+      </div>
+
+      <button type="button" class="btn btn--whatsapp" (click)="order()">
+        <svg viewBox="0 0 24 24" aria-hidden="true" width="18" height="18">
+          <path
+            fill="currentColor"
+            d="M12.04 2C6.58 2 2.15 6.4 2.15 11.83c0 1.99.58 3.85 1.6 5.44L2 22l4.88-1.63a9.9 9.9 0 0 0 5.16 1.44h.01c5.46 0 9.89-4.4 9.89-9.83C21.94 6.4 17.5 2 12.04 2Zm5.5 13.98c-.23.64-1.33 1.17-1.85 1.24-.47.07-1.07.1-1.73-.11-.4-.12-.91-.28-1.57-.55-2.76-1.19-4.55-3.97-4.69-4.15-.14-.18-1.15-1.53-1.15-2.92 0-1.39.73-2.07.99-2.35.26-.28.57-.35.76-.35h.55c.17 0 .41-.07.64.49.23.57.79 1.97.86 2.11.07.14.12.3.02.49-.1.18-.14.3-.28.46-.14.16-.3.36-.42.48-.14.14-.28.29-.12.57.16.28.7 1.15 1.5 1.86 1.03.92 1.9 1.21 2.17 1.35.28.14.43.12.59-.07.16-.18.69-.8.87-1.08.18-.28.37-.23.62-.14.26.1 1.63.77 1.91.91.28.14.47.21.54.32.07.12.07.68-.16 1.32Z"
+          />
+        </svg>
+        Order via WhatsApp
+      </button>
+
+      @if (ordered()) {
+        <p class="drawer__hint">WhatsApp opened with your order — send the message to confirm.</p>
+      }
+    </div>
+  }
+</aside>

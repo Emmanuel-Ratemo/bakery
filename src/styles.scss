@@ -1,0 +1,85 @@
+:root {
+  --pink-deep: #c2185b;
+  --pink-hot: #e91e75;
+  --pink-mid: #f48fb1;
+  --pink-soft: #ffd6e5;
+  --pink-mist: #fff0f5;
+  --surface: #fff8fb;
+  --card: #ffffff;
+  --ink: #1f0d14;
+  --ink-soft: #6b4452;
+  --line: #efd5df;
+  --font-script: 'Great Vibes', cursive;
+  --font-body: 'Outfit', system-ui, sans-serif;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  min-height: 100%;
+  font-family: var(--font-body);
+  color: var(--ink);
+  background: var(--surface);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+.btn {
+  appearance: none;
+  border-radius: 0.35rem;
+  padding: 0.8rem 1.45rem;
+  font-family: var(--font-body);
+  font-size: 0.92rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.2s ease, background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+}
+
+.btn--solid {
+  border: 0;
+  background: var(--pink-deep);
+  color: white;
+}
+
+.btn--solid:hover {
+  background: var(--pink-hot);
+}
+
+.btn--outline {
+  background: transparent;
+  color: white;
+  border: 1.5px solid color-mix(in srgb, white 70%, transparent);
+}
+
+.btn--outline:hover {
+  background: color-mix(in srgb, white 14%, transparent);
+  border-color: white;
+}
+
+::selection {
+  background: var(--pink-mid);
+  color: var(--ink);
+}
