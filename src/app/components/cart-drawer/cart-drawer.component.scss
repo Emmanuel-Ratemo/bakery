@@ -104,8 +104,23 @@
   font-size: 0.95rem;
 }
 
+.line__flavour {
+  margin: 0 0 0.2rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--pink-deep);
+}
+
+.line__extra,
+.line__allergens {
+  margin: 0 0 0.2rem;
+  font-size: 0.78rem;
+  line-height: 1.35;
+  color: var(--ink-soft);
+}
+
 .line__price {
-  margin: 0 0 0.55rem;
+  margin: 0.35rem 0 0.55rem;
   color: var(--pink-deep);
   font-weight: 700;
   font-size: 0.9rem;

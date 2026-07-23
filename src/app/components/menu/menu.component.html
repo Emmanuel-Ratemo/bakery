@@ -1,11 +1,15 @@
 <section class="products" id="products">
   <h2 class="section-title">Top Products</h2>
+  <p class="products__intro">
+    Birthday themes, classic cakes, and muffins — pick options when you add to cart.
+  </p>
 
   <div class="products__grid">
     @for (product of products; track product.id) {
       <article class="card">
         <div class="card__media">
           <img [src]="product.image" [alt]="product.name" loading="lazy" />
+          <span class="card__tag">{{ product.category }}</span>
         </div>
         <div class="card__bar">
           <div class="card__meta">
@@ -14,25 +18,113 @@
             </p>
             <h3 class="card__name">{{ product.name }}</h3>
           </div>
-          <div class="card__actions">
-            <button
-              type="button"
-              class="card__info"
-              (click)="toggleInfo(product.id)"
-              [attr.aria-expanded]="infoId() === product.id"
-              [attr.aria-label]="'About ' + product.name"
-            >
-              i
-            </button>
-            <button type="button" class="card__add" (click)="add(product)">
-              Add
-            </button>
-          </div>
+          <button type="button" class="card__add" (click)="openCustomize(product)">
+            Add
+          </button>
         </div>
-        @if (infoId() === product.id) {
-          <p class="card__desc">{{ product.description }}</p>
-        }
+        <p class="card__desc">{{ product.description }}</p>
       </article>
     }
   </div>
 </section>
+
+@if (customizing(); as product) {
+  <div class="sheet-overlay" (click)="closeCustomize()" aria-hidden="true"></div>
+  <div class="sheet" role="dialog" aria-modal="true" [attr.aria-label]="'Customize ' + product.name">
+    <div class="sheet__head">
+      <h3>{{ product.name }}</h3>
+      <button type="button" class="sheet__close" (click)="closeCustomize()" aria-label="Close">
+        ×
+      </button>
+    </div>
+
+    <p class="sheet__price">
+      {{ product.price | currency: 'KES':'symbol-narrow':'1.0-0' }}
+    </p>
+
+    @if (product.themes?.length) {
+      <div class="sheet__block">
+        <h4>Theme</h4>
+        <div class="flavour-options">
+          @for (theme of product.themes; track theme) {
+            <label class="flavour-option">
+              <input
+                type="radio"
+                name="theme"
+                [value]="theme"
+                [(ngModel)]="selectedTheme"
+              />
+              <span>{{ theme }}</span>
+            </label>
+          }
+        </div>
+      </div>
+
+      @if (needsThemeDetail()) {
+        <label class="sheet__field">
+          <span>Describe your custom theme *</span>
+          <input
+            type="text"
+            [(ngModel)]="customThemeDetail"
+            name="customThemeDetail"
+            maxlength="60"
+            placeholder="e.g. Paw Patrol, unicorn, blue and gold"
+          />
+        </label>
+      }
+    }
+
+    <div class="sheet__block">
+      <h4>Flavours</h4>
+      <div class="flavour-options">
+        @for (flavour of product.flavours; track flavour) {
+          <label class="flavour-option">
+            <input
+              type="radio"
+              name="flavour"
+              [value]="flavour"
+              [(ngModel)]="selectedFlavour"
+            />
+            <span>{{ flavour }}</span>
+          </label>
+        }
+      </div>
+    </div>
+
+    <div class="sheet__allergies">
+      <h4>Allergies</h4>
+      <p class="sheet__allergy-label">May contain:</p>
+      <ul class="chip-list chip-list--warn">
+        @for (allergy of product.allergies; track allergy) {
+          <li>{{ allergy }}</li>
+        }
+      </ul>
+    </div>
+
+    <label class="sheet__field">
+      <span>Allergy notes (optional)</span>
+      <input
+        type="text"
+        [(ngModel)]="allergyNotes"
+        name="allergyNotes"
+        maxlength="120"
+        placeholder="e.g. No nuts, dairy-free frosting if possible"
+      />
+    </label>
+
+    <label class="sheet__field">
+      <span>Custom cake message (optional)</span>
+      <input
+        type="text"
+        [(ngModel)]="customMessage"
+        name="customMessage"
+        maxlength="80"
+        placeholder="e.g. Happy Birthday Emma!"
+      />
+    </label>
+
+    <button type="button" class="sheet__confirm" (click)="confirmAdd()" [disabled]="!canAdd()">
+      Add to cart
+    </button>
+  </div>
+}

@@ -19,23 +19,34 @@
   @if (cart.items().length === 0) {
     <div class="drawer__empty">
       <p>Your cart is empty.</p>
-      <p class="muted">Add something sweet from the menu.</p>
+      <p class="muted">Add a cake or muffins from the menu.</p>
     </div>
   } @else {
     <ul class="drawer__list">
-      @for (item of cart.items(); track item.product.id) {
+      @for (item of cart.items(); track item.lineId) {
         <li class="line">
           <img [src]="item.product.image" [alt]="" />
           <div class="line__meta">
             <p class="line__name">{{ item.product.name }}</p>
+            @if (item.theme) {
+              <p class="line__flavour">Theme: {{ item.theme }}</p>
+            }
+            <p class="line__flavour">Flavour: {{ item.flavour }}</p>
+            @if (item.customMessage) {
+              <p class="line__extra">Message: “{{ item.customMessage }}”</p>
+            }
+            @if (item.allergyNotes) {
+              <p class="line__extra">Allergy notes: {{ item.allergyNotes }}</p>
+            }
+            <p class="line__allergens">Contains: {{ item.product.allergies.join(', ') }}</p>
             <p class="line__price">
               {{ item.product.price * item.quantity | currency: 'KES':'symbol-narrow':'1.0-0' }}
             </p>
             <div class="line__qty">
-              <button type="button" (click)="cart.decrease(item.product.id)" aria-label="Decrease">−</button>
+              <button type="button" (click)="cart.decrease(item.lineId)" aria-label="Decrease">−</button>
               <span>{{ item.quantity }}</span>
-              <button type="button" (click)="cart.increase(item.product.id)" aria-label="Increase">+</button>
-              <button type="button" class="line__remove" (click)="cart.remove(item.product.id)">
+              <button type="button" (click)="cart.increase(item.lineId)" aria-label="Increase">+</button>
+              <button type="button" class="line__remove" (click)="cart.remove(item.lineId)">
                 Remove
               </button>
             </div>
@@ -47,11 +58,23 @@
     <div class="drawer__footer">
       <label class="field">
         <span>Your name</span>
-        <input type="text" [(ngModel)]="customerName" name="customerName" placeholder="Optional" />
+        <input
+          type="text"
+          [(ngModel)]="customerName"
+          name="customerName"
+          maxlength="60"
+          placeholder="Your name"
+        />
       </label>
       <label class="field">
         <span>Note</span>
-        <input type="text" [(ngModel)]="note" name="note" placeholder="Pickup time, frosting color…" />
+        <input
+          type="text"
+          [(ngModel)]="note"
+          name="note"
+          maxlength="120"
+          placeholder="Pickup time, delivery area…"
+        />
       </label>
 
       <div class="drawer__total">

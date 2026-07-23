@@ -1,6 +1,18 @@
 import { Injectable, computed, signal } from '@angular/core';
-import { CartItem, Product } from '../models/product.model';
+import {
+  AddToCartOptions,
+  CartItem,
+  Product,
+} from '../models/product.model';
 import { WHATSAPP_NUMBER } from '../data/products';
+
+function cleanText(value: string, max = 120): string {
+  return value
+    .replace(/[\r\n\t]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, max);
+}
 
 @Injectable({ providedIn: 'root' })
 export class CartService {
@@ -30,42 +42,70 @@ export class CartService {
     this.open.update((v) => !v);
   }
 
-  add(product: Product): void {
+  add(product: Product, options: AddToCartOptions): void {
+    const flavour = cleanText(options.flavour, 40);
+    if (!flavour) return;
+
+    const theme = cleanText(options.theme ?? '', 60);
+    if (product.themes?.length && !theme) return;
+
+    const allergyNotes = cleanText(options.allergyNotes ?? '', 120);
+    const customMessage = cleanText(options.customMessage ?? '', 80);
+
     this.itemsSignal.update((items) => {
-      const existing = items.find((i) => i.product.id === product.id);
+      const existing = items.find(
+        (i) =>
+          i.product.id === product.id &&
+          i.flavour === flavour &&
+          i.theme === theme &&
+          i.allergyNotes === allergyNotes &&
+          i.customMessage === customMessage
+      );
+
       if (existing) {
         return items.map((i) =>
-          i.product.id === product.id
+          i.lineId === existing.lineId
             ? { ...i, quantity: i.quantity + 1 }
             : i
         );
       }
-      return [...items, { product, quantity: 1 }];
+
+      const line: CartItem = {
+        lineId: `${product.id}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+        product,
+        quantity: 1,
+        flavour,
+        theme,
+        allergyNotes,
+        customMessage,
+      };
+      return [...items, line];
     });
+
     this.open.set(true);
   }
 
-  increase(productId: string): void {
+  increase(lineId: string): void {
     this.itemsSignal.update((items) =>
       items.map((i) =>
-        i.product.id === productId ? { ...i, quantity: i.quantity + 1 } : i
+        i.lineId === lineId ? { ...i, quantity: i.quantity + 1 } : i
       )
     );
   }
 
-  decrease(productId: string): void {
+  decrease(lineId: string): void {
     this.itemsSignal.update((items) =>
       items
         .map((i) =>
-          i.product.id === productId ? { ...i, quantity: i.quantity - 1 } : i
+          i.lineId === lineId ? { ...i, quantity: i.quantity - 1 } : i
         )
         .filter((i) => i.quantity > 0)
     );
   }
 
-  remove(productId: string): void {
+  remove(lineId: string): void {
     this.itemsSignal.update((items) =>
-      items.filter((i) => i.product.id !== productId)
+      items.filter((i) => i.lineId !== lineId)
     );
   }
 
@@ -77,10 +117,19 @@ export class CartService {
     const items = this.itemsSignal();
     if (!items.length) return;
 
-    const lines = items.map(
-      (i) =>
-        `• ${i.quantity}x ${i.product.name} — KSh ${(i.product.price * i.quantity).toLocaleString()}`
-    );
+    const name = cleanText(customerName, 60);
+    const extraNote = cleanText(note, 120);
+
+    const lines = items.flatMap((i) => {
+      const title = i.theme
+        ? `• ${i.quantity}x ${i.product.name} — ${i.theme} (${i.flavour}) — KSh ${(i.product.price * i.quantity).toLocaleString()}`
+        : `• ${i.quantity}x ${i.product.name} (${i.flavour}) — KSh ${(i.product.price * i.quantity).toLocaleString()}`;
+
+      const block = [title, `  Allergens: ${i.product.allergies.join(', ')}`];
+      if (i.customMessage) block.push(`  Cake message: "${i.customMessage}"`);
+      if (i.allergyNotes) block.push(`  Allergy notes: ${i.allergyNotes}`);
+      return block;
+    });
 
     const message = [
       `Hello Bree's Bakery! I'd like to place an order.`,
@@ -88,8 +137,8 @@ export class CartService {
       ...lines,
       '',
       `*Total: KSh ${this.total().toLocaleString()}*`,
-      customerName.trim() ? `\nName: ${customerName.trim()}` : '',
-      note.trim() ? `Note: ${note.trim()}` : '',
+      name ? `Name: ${name}` : '',
+      extraNote ? `Note: ${extraNote}` : '',
     ]
       .filter(Boolean)
       .join('\n');
