@@ -93,6 +93,8 @@ export class CartService {
       };
       return [...items, line];
     });
+
+    this.open.set(true);
   }
 
   quantityFor(productId: string): number {
