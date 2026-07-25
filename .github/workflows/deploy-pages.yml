@@ -33,16 +33,20 @@ jobs:
 
       - name: Generate admin credentials
         env:
-          ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
+          ADMIN_PASSWORD_SECRET: ${{ secrets.ADMIN_PASSWORD }}
+          ADMIN_PASSWORD_VAR: ${{ vars.ADMIN_PASSWORD }}
         run: |
+          ADMIN_PASSWORD="${ADMIN_PASSWORD_SECRET:-$ADMIN_PASSWORD_VAR}"
+          export ADMIN_PASSWORD
           if [ -z "$ADMIN_PASSWORD" ]; then
-            echo "::error::ADMIN_PASSWORD secret is empty or missing."
-            echo "Add a Repository secret named exactly ADMIN_PASSWORD:"
-            echo "https://github.com/${{ github.repository }}/settings/secrets/actions"
-            echo "Do not use an Environment secret unless this job also uses that environment."
+            echo "::error::ADMIN_PASSWORD is empty or missing."
+            echo "Add it here as a Repository secret (preferred) OR variable, named exactly ADMIN_PASSWORD:"
+            echo "Secrets: https://github.com/${{ github.repository }}/settings/secrets/actions"
+            echo "Variables: https://github.com/${{ github.repository }}/settings/variables/actions"
+            echo "Or under Environment github-pages → Environment secrets."
             exit 1
           fi
-          echo "ADMIN_PASSWORD secret is set (length ${#ADMIN_PASSWORD})."
+          echo "ADMIN_PASSWORD is set (length ${#ADMIN_PASSWORD})."
           node scripts/generate-admin-credentials.mjs --require
 
       - name: Build
