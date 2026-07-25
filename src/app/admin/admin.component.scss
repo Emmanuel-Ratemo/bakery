@@ -132,6 +132,68 @@
   font-size: 0.9rem;
 }
 
+.admin-themes {
+  margin: 0 0 1.5rem;
+  padding: 1.15rem;
+  background: white;
+  border: 1px solid var(--line);
+  display: grid;
+  gap: 1rem;
+}
+
+.admin-themes__head {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.85rem;
+  align-items: flex-start;
+}
+
+.admin-themes__head h2 {
+  margin: 0 0 0.35rem;
+  font-size: 1.2rem;
+}
+
+.admin-themes__head p {
+  margin: 0;
+  color: var(--ink-soft);
+  line-height: 1.45;
+  max-width: 48ch;
+  font-size: 0.9rem;
+}
+
+.admin-themes__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.admin-themes__price {
+  max-width: 16rem;
+}
+
+.admin-themes__list {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.admin-themes__row,
+.admin-themes__add {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.5rem;
+}
+
+.admin-themes__row input,
+.admin-themes__add input {
+  border: 1px solid var(--line);
+  border-radius: 0.4rem;
+  padding: 0.7rem 0.8rem;
+  font: inherit;
+  font-size: 0.95rem;
+  color: var(--ink);
+}
+
 .admin__toolbar {
   display: flex;
   flex-wrap: wrap;

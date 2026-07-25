@@ -1,7 +1,7 @@
 <div class="admin">
   <header class="admin__top">
     <div>
-      <p class="admin__eyebrow">Bree's Bakery</p>
+      <p class="admin__eyebrow">Bee's Blossom Bakes</p>
       <h1>Admin</h1>
     </div>
     <div class="admin__top-actions">
@@ -47,6 +47,78 @@
       @if (statusMessage()) {
         <p class="admin__status">{{ statusMessage() }}</p>
       }
+
+      <section class="admin-themes" aria-label="Occasion themes">
+        <div class="admin-themes__head">
+          <div>
+            <h2>Birthdays / Special occasions</h2>
+            <p>
+              These styles appear under Theme → Birthdays / Special occasions.
+              Keep <code>Custom theme</code> if you want a free-text option.
+            </p>
+          </div>
+          <div class="admin-themes__actions">
+            <button type="button" class="admin__ghost" (click)="resetThemes()">
+              Reset themes
+            </button>
+            <button
+              type="button"
+              class="admin__primary"
+              (click)="saveThemes()"
+              [disabled]="busyId() === 'themes'"
+            >
+              {{ busyId() === 'themes' ? 'Saving…' : 'Save themes' }}
+            </button>
+          </div>
+        </div>
+
+        <label class="admin__field admin-themes__price">
+          <span>Theme add-on price (KES)</span>
+          <input
+            type="number"
+            min="0"
+            step="50"
+            [ngModel]="draftThemeSurcharge()"
+            (ngModelChange)="draftThemeSurcharge.set(+$event)"
+          />
+        </label>
+
+        <div class="admin-themes__list">
+          @for (theme of draftThemes(); track $index) {
+            <div class="admin-themes__row">
+              <input
+                type="text"
+                [ngModel]="theme"
+                (ngModelChange)="setDraftTheme($index, $event)"
+                maxlength="60"
+                [attr.aria-label]="'Theme ' + ($index + 1)"
+              />
+              <button
+                type="button"
+                class="admin__ghost"
+                (click)="removeTheme($index)"
+                [disabled]="draftThemes().length <= 1"
+              >
+                Remove
+              </button>
+            </div>
+          }
+        </div>
+
+        <div class="admin-themes__add">
+          <input
+            type="text"
+            name="newTheme"
+            [(ngModel)]="newThemeName"
+            maxlength="60"
+            placeholder="Add theme e.g. Unicorn"
+            (keyup.enter)="addTheme()"
+          />
+          <button type="button" class="admin__primary" (click)="addTheme()">
+            Add theme
+          </button>
+        </div>
+      </section>
 
       <div class="admin__grid">
         @for (product of products.products(); track product.id) {

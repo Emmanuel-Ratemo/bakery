@@ -7,6 +7,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(__dirname, '..');
 const imagesDir = path.join(root, 'public', 'assets', 'images', 'products');
 const overridesPath = path.join(root, 'public', 'catalog-overrides.json');
+const settingsPath = path.join(root, 'public', 'catalog-settings.json');
 const productsTsPath = path.join(root, 'src', 'app', 'data', 'products.ts');
 const envPath = path.join(root, '.env');
 const PORT = 4301;
@@ -36,6 +37,75 @@ loadDotEnv();
 fs.mkdirSync(imagesDir, { recursive: true });
 if (!fs.existsSync(overridesPath)) {
   fs.writeFileSync(overridesPath, '{}\n', 'utf8');
+}
+if (!fs.existsSync(settingsPath)) {
+  fs.writeFileSync(
+    settingsPath,
+    `${JSON.stringify(
+      {
+        themeSurchargeKes: 1500,
+        occasionThemes: [
+          'Elsa (Frozen)',
+          'Sofia the First',
+          'SpongeBob',
+          'Cars (Disney)',
+          'Custom theme',
+        ],
+      },
+      null,
+      2
+    )}\n`,
+    'utf8'
+  );
+}
+
+function readSettings() {
+  try {
+    return JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+  } catch {
+    return {
+      themeSurchargeKes: 1500,
+      occasionThemes: [
+        'Elsa (Frozen)',
+        'Sofia the First',
+        'SpongeBob',
+        'Cars (Disney)',
+        'Custom theme',
+      ],
+    };
+  }
+}
+
+function writeSettings(data) {
+  fs.writeFileSync(settingsPath, `${JSON.stringify(data, null, 2)}\n`, 'utf8');
+}
+
+function patchThemeSettings(settings) {
+  let src = fs.readFileSync(productsTsPath, 'utf8');
+
+  if (!/THEME_SURCHARGE_KES\s*=\s*\d+/.test(src)) {
+    throw new Error('THEME_SURCHARGE_KES not found in products.ts');
+  }
+  src = src.replace(
+    /THEME_SURCHARGE_KES\s*=\s*\d+/,
+    `THEME_SURCHARGE_KES = ${settings.themeSurchargeKes}`
+  );
+
+  const themesBlock = settings.occasionThemes
+    .map((t) => `  '${String(t).replace(/'/g, "\\'")}',`)
+    .join('\r\n');
+
+  const themesRe =
+    /export const OCCASION_THEMES = \[[\s\S]*?\] as const;/;
+  if (!themesRe.test(src)) {
+    throw new Error('OCCASION_THEMES not found in products.ts');
+  }
+  src = src.replace(
+    themesRe,
+    `export const OCCASION_THEMES = [\r\n${themesBlock}\r\n] as const;`
+  );
+
+  fs.writeFileSync(productsTsPath, src, 'utf8');
 }
 
 function readAdminPassword() {
@@ -142,6 +212,39 @@ const server = http.createServer(async (req, res) => {
 
     if (req.method === 'GET' && url.pathname === '/api/overrides') {
       return sendJson(res, 200, readOverrides());
+    }
+
+    if (req.method === 'GET' && url.pathname === '/api/settings') {
+      return sendJson(res, 200, readSettings());
+    }
+
+    if (req.method === 'POST' && url.pathname === '/api/settings') {
+      const body = await readBody(req);
+      assertPassword(body);
+
+      const themeSurchargeKes = Number(body.themeSurchargeKes);
+      if (!Number.isFinite(themeSurchargeKes) || themeSurchargeKes < 0) {
+        return sendJson(res, 400, { error: 'Invalid theme surcharge.' });
+      }
+
+      const occasionThemes = Array.isArray(body.occasionThemes)
+        ? body.occasionThemes
+            .map((t) => String(t).trim())
+            .filter(Boolean)
+            .slice(0, 40)
+        : [];
+
+      if (!occasionThemes.length) {
+        return sendJson(res, 400, { error: 'Add at least one occasion theme.' });
+      }
+
+      const settings = {
+        themeSurchargeKes: Math.round(themeSurchargeKes),
+        occasionThemes: [...new Set(occasionThemes)],
+      };
+      writeSettings(settings);
+      patchThemeSettings(settings);
+      return sendJson(res, 200, settings);
     }
 
     const productMatch = url.pathname.match(

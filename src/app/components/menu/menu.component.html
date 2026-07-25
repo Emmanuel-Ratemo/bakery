@@ -1,38 +1,115 @@
-<section class="products" id="products">
-  <h2 class="section-title">Top Products</h2>
-  <p class="products__intro">
-    Birthday cakes are priced per kg and theme. Other cakes are priced per kg.
-  </p>
+@if (mode === 'preview') {
+  <section class="products" id="products">
+    <h2 class="section-title">Top Products</h2>
+    <p class="products__intro">
+      Whipped cream favourites from our price list — pick a size (½–3 kg).
+    </p>
 
-  <div class="products__grid">
-    @for (product of products(); track product.id) {
-      <article class="card">
-        <div class="card__media">
-          <img [src]="product.image" [alt]="product.name" loading="lazy" />
-          <span class="card__tag">{{ product.category }}</span>
-        </div>
-        <div class="card__bar">
-          <div class="card__meta">
-            <p class="card__price">
-              {{ startingPrice(product) | currency: 'KES':'symbol-narrow':'1.0-0' }}
-              <span class="card__unit">{{ priceHint(product) }}</span>
-            </p>
-            <h3 class="card__name">{{ product.name }}</h3>
-            @if (cart.quantityFor(product.id) > 0) {
-              <p class="card__in-cart">
-                In cart · {{ cart.quantityFor(product.id) }}
-              </p>
-            }
-          </div>
-          <button type="button" class="card__add" (click)="openCustomize(product)">
-            {{ cart.quantityFor(product.id) > 0 ? 'Add again' : 'Add' }}
-          </button>
-        </div>
-        <p class="card__desc">{{ product.description }}</p>
-      </article>
-    }
-  </div>
-</section>
+    <div class="products__grid">
+      @for (product of topProducts(); track product.id) {
+        <ng-container
+          *ngTemplateOutlet="productCard; context: { $implicit: product }"
+        />
+      }
+    </div>
+
+    <div class="products__more">
+      <a routerLink="/menu" [queryParams]="{ category: 'Whipped Cream' }" class="products__more-btn">
+        View more
+      </a>
+    </div>
+  </section>
+
+  <section class="products products--specialty" id="specialty">
+    <h2 class="section-title">Specialty</h2>
+    <p class="products__intro">
+      Signature cakes — chocolate, forest, Oreo and more. Design & toppers may vary.
+    </p>
+
+    <div class="products__grid">
+      @for (product of specialtyProducts(); track product.id) {
+        <ng-container
+          *ngTemplateOutlet="productCard; context: { $implicit: product }"
+        />
+      }
+    </div>
+
+    <div class="products__more">
+      <a routerLink="/menu" [queryParams]="{ category: 'Specialty' }" class="products__more-btn">
+        View more
+      </a>
+    </div>
+  </section>
+} @else {
+  <section class="products products--full" id="menu">
+    <h2 class="section-title">Full Menu</h2>
+    <p class="products__intro">
+      All cakes from our chart. Filter by category, then choose size and theme.
+    </p>
+
+    <div class="products__tabs" role="tablist" aria-label="Menu categories">
+      <button
+        type="button"
+        class="products__tab"
+        role="tab"
+        [class.products__tab--active]="filter() === 'All'"
+        [attr.aria-selected]="filter() === 'All'"
+        (click)="setFilter('All')"
+      >
+        All
+      </button>
+      @for (category of categories; track category) {
+        <button
+          type="button"
+          class="products__tab"
+          role="tab"
+          [class.products__tab--active]="filter() === category"
+          [attr.aria-selected]="filter() === category"
+          (click)="setFilter(category)"
+        >
+          {{ category }}
+        </button>
+      }
+    </div>
+
+    <div class="products__grid">
+      @for (product of filteredProducts(); track product.id) {
+        <ng-container
+          *ngTemplateOutlet="productCard; context: { $implicit: product }"
+        />
+      } @empty {
+        <p class="products__empty">No cakes in this category yet.</p>
+      }
+    </div>
+  </section>
+}
+
+<ng-template #productCard let-product>
+  <article class="card">
+    <div class="card__media">
+      <img [src]="product.image" [alt]="product.name" loading="lazy" />
+      <span class="card__tag">{{ product.category }}</span>
+    </div>
+    <div class="card__bar">
+      <div class="card__meta">
+        <p class="card__price">
+          {{ startingPrice(product) | currency: 'KES':'symbol-narrow':'1.0-0' }}
+          <span class="card__unit">{{ priceHint(product) }}</span>
+        </p>
+        <h3 class="card__name">{{ product.name }}</h3>
+        @if (cart.quantityFor(product.id) > 0) {
+          <p class="card__in-cart">
+            In cart · {{ cart.quantityFor(product.id) }}
+          </p>
+        }
+      </div>
+      <button type="button" class="card__add" (click)="openCustomize(product)">
+        {{ cart.quantityFor(product.id) > 0 ? 'Add again' : 'Add' }}
+      </button>
+    </div>
+    <p class="card__desc">{{ product.description }}</p>
+  </article>
+</ng-template>
 
 @if (customizing(); as product) {
   <div class="sheet-overlay" (click)="closeCustomize()" aria-hidden="true"></div>
@@ -48,7 +125,7 @@
       {{ currentPrice() | currency: 'KES':'symbol-narrow':'1.0-0' }}
     </p>
     @if (showThemeExtra()) {
-      <p class="sheet__surcharge">Includes +{{ themeSurcharge | currency: 'KES':'symbol-narrow':'1.0-0' }} theme fee</p>
+      <p class="sheet__surcharge">Includes +{{ themeSurcharge() | currency: 'KES':'symbol-narrow':'1.0-0' }} theme fee</p>
     }
 
     @if (product.pricedBy === 'kg') {
@@ -73,52 +150,77 @@
     @if (product.themes?.length) {
       <div class="sheet__block">
         <h4>Theme</h4>
-        <p class="sheet__hint">Classic Birthday = plain rate. Other themes +{{ themeSurcharge | currency: 'KES':'symbol-narrow':'1.0-0' }}</p>
+        <p class="sheet__hint">
+          Normal = chart price. Birthdays / special occasions +{{ themeSurcharge() | currency: 'KES':'symbol-narrow':'1.0-0' }}.
+          Design & toppers may vary.
+        </p>
         <div class="flavour-options">
-          @for (theme of product.themes; track theme) {
+          @for (category of themeCategories; track category) {
             <label class="flavour-option">
               <input
                 type="radio"
-                name="theme"
-                [value]="theme"
-                [(ngModel)]="selectedTheme"
+                name="themeCategory"
+                [value]="category"
+                [(ngModel)]="selectedThemeCategory"
+                (ngModelChange)="onThemeCategoryChange()"
               />
-              <span>{{ theme }}</span>
+              <span>{{ category }}</span>
             </label>
           }
         </div>
       </div>
 
-      @if (needsThemeDetail()) {
-        <label class="sheet__field">
-          <span>Describe your custom theme *</span>
-          <input
-            type="text"
-            [(ngModel)]="customThemeDetail"
-            name="customThemeDetail"
-            maxlength="60"
-            placeholder="e.g. Paw Patrol, unicorn, blue and gold"
-          />
-        </label>
+      @if (isOccasionCategory()) {
+        <div class="sheet__block">
+          <h4>Occasion style</h4>
+          <div class="flavour-options">
+            @for (theme of occasionThemes(); track theme) {
+              <label class="flavour-option">
+                <input
+                  type="radio"
+                  name="theme"
+                  [value]="theme"
+                  [(ngModel)]="selectedTheme"
+                />
+                <span>{{ theme }}</span>
+              </label>
+            }
+          </div>
+        </div>
+
+        @if (needsThemeDetail()) {
+          <label class="sheet__field">
+            <span>Describe your custom theme *</span>
+            <input
+              type="text"
+              [(ngModel)]="customThemeDetail"
+              name="customThemeDetail"
+              maxlength="60"
+              placeholder="e.g. Paw Patrol, unicorn, blue and gold"
+            />
+          </label>
+        }
       }
     }
 
-    <div class="sheet__block">
-      <h4>Flavours</h4>
-      <div class="flavour-options">
-        @for (flavour of product.flavours; track flavour) {
-          <label class="flavour-option">
-            <input
-              type="radio"
-              name="flavour"
-              [value]="flavour"
-              [(ngModel)]="selectedFlavour"
-            />
-            <span>{{ flavour }}</span>
-          </label>
-        }
+    @if (product.flavours.length > 1) {
+      <div class="sheet__block">
+        <h4>Flavours</h4>
+        <div class="flavour-options">
+          @for (flavour of product.flavours; track flavour) {
+            <label class="flavour-option">
+              <input
+                type="radio"
+                name="flavour"
+                [value]="flavour"
+                [(ngModel)]="selectedFlavour"
+              />
+              <span>{{ flavour }}</span>
+            </label>
+          }
+        </div>
       </div>
-    </div>
+    }
 
     <div class="sheet__allergies">
       <h4>Allergies</h4>

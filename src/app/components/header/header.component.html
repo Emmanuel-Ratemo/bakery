@@ -1,15 +1,28 @@
 <header class="header" [class.header--solid]="scrolled()">
   <div class="header__inner">
-    <a class="header__brand" href="#" (click)="$event.preventDefault(); goTo('top')">
-      <span class="header__mark" aria-hidden="true">B</span>
-      <span class="header__name">Bree's Bakery</span>
+    <a class="header__brand" href="#" (click)="$event.preventDefault(); goHome()">
+      <img class="header__logo" src="logo.png" alt="" width="40" height="40" />
+      <span class="header__name">Bee's Blossom Bakes</span>
     </a>
 
     <nav class="header__nav" aria-label="Primary">
-      <button type="button" class="header__link" (click)="goTo('top')">Home</button>
-      <button type="button" class="header__link" (click)="goTo('products')">Menu</button>
-      <button type="button" class="header__link" (click)="goTo('explore')">Explore</button>
-      <button type="button" class="header__link" (click)="goTo('visit')">Contact</button>
+      <button type="button" class="header__link" (click)="goHome()">Home</button>
+      <button type="button" class="header__link" (click)="goHomeSection('products')">
+        Top Products
+      </button>
+      <a
+        routerLink="/menu"
+        routerLinkActive="header__link--active"
+        class="header__link header__link--a"
+      >
+        Menu
+      </a>
+      <button type="button" class="header__link" (click)="goHomeSection('explore')">
+        Explore
+      </button>
+      <button type="button" class="header__link" (click)="goHomeSection('visit')">
+        Contact
+      </button>
     </nav>
 
     <button

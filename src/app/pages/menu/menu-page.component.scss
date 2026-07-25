@@ -1,0 +1,20 @@
+:host {
+  display: block;
+  min-height: 100svh;
+  background: var(--surface);
+}
+
+.skip {
+  position: absolute;
+  left: -999px;
+  top: 0;
+  background: var(--pink-deep);
+  color: white;
+  padding: 0.5rem 0.75rem;
+  z-index: 100;
+}
+
+.skip:focus {
+  left: 0.75rem;
+  top: 0.75rem;
+}

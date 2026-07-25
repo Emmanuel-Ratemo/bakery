@@ -4,7 +4,7 @@ export interface Product {
   id: string;
   name: string;
   description: string;
-  /** KES per kg (cakes) or per piece (pastries) */
+  /** Display / fallback starting price (KES) — usually the ½ kg chart price */
   pricePerUnit: number;
   pricedBy: PriceUnit;
   image: string;
@@ -12,6 +12,8 @@ export interface Product {
   flavours: string[];
   allergies: string[];
   themes?: string[];
+  /** Official chart prices by weight (kg → KES) */
+  pricesByWeight?: Record<number, number>;
 }
 
 export interface CartItem {
@@ -21,7 +23,7 @@ export interface CartItem {
   flavour: string;
   theme: string;
   weightKg: number;
-  /** Locked line price for one unit (one cake / one pastry) */
+  /** Locked line price for one unit (one cake) */
   unitPrice: number;
   allergyNotes: string;
   customMessage: string;

@@ -1,6 +1,8 @@
-# Bree's Bakery
+# Bee's Blossom Bakes
 
-Angular storefront for Bree's Bakery with cart and WhatsApp ordering.
+Angular storefront with cart and WhatsApp ordering.
+
+**Tagline:** Blooming delights in every bite
 
 ## Run locally
 

@@ -6,6 +6,7 @@ import { PRODUCT_DEFAULTS } from '../data/product-defaults';
 import { PRODUCTS } from '../data/products';
 import { Product } from '../models/product.model';
 import { AdminAuthService } from './admin-auth.service';
+import { CatalogSettingsService } from './catalog-settings.service';
 
 export interface ProductOverride {
   pricePerUnit?: number;
@@ -16,11 +17,19 @@ export interface ProductOverride {
 export class ProductService {
   private readonly http = inject(HttpClient);
   private readonly auth = inject(AdminAuthService);
+  private readonly catalogSettings = inject(CatalogSettingsService);
   private readonly overrides = signal<Record<string, ProductOverride>>({});
   private readonly apiReady = signal(false);
 
   readonly products = computed(() =>
-    PRODUCTS.map((product) => this.applyOverride(product))
+    PRODUCTS.map((product) => {
+      const withOverride = this.applyOverride(product);
+      if (!withOverride.themes?.length) return withOverride;
+      return {
+        ...withOverride,
+        themes: [...this.catalogSettings.occasionThemes()],
+      };
+    })
   );
 
   readonly usingFileApi = this.apiReady.asReadonly();

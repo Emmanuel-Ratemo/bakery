@@ -9,7 +9,7 @@ import { CATEGORIES, GALLERY } from '../../data/products';
 })
 export class ExploreComponent {
   readonly categories = CATEGORIES;
-  readonly active = signal<(typeof CATEGORIES)[number] | 'All'>('Birthday');
+  readonly active = signal<(typeof CATEGORIES)[number] | 'All'>('Whipped Cream');
 
   readonly items = computed(() => {
     const cat = this.active();

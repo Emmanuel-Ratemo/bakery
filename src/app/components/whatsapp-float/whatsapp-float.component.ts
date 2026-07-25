@@ -21,7 +21,7 @@ export class WhatsappFloatComponent {
 
   startChat(): void {
     const message =
-      "Hi Bree's Bakery! I'd like to place an order / ask about your menu.";
+      "Hi Bee's Blossom Bakes! I'd like to place an order / ask about your menu.";
     const url = `https://wa.me/${this.number}?text=${encodeURIComponent(message)}`;
     window.open(url, '_blank', 'noopener,noreferrer');
     this.close();

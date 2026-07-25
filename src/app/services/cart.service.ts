@@ -1,4 +1,4 @@
-import { Injectable, computed, signal } from '@angular/core';
+import { Injectable, computed, inject, signal } from '@angular/core';
 import {
   AddToCartOptions,
   CartItem,
@@ -9,6 +9,7 @@ import {
   calcUnitPrice,
   formatWeight,
 } from '../data/products';
+import { CatalogSettingsService } from './catalog-settings.service';
 
 function cleanText(value: string, max = 120): string {
   return value
@@ -21,6 +22,7 @@ function cleanText(value: string, max = 120): string {
 @Injectable({ providedIn: 'root' })
 export class CartService {
   private readonly itemsSignal = signal<CartItem[]>([]);
+  private readonly catalogSettings = inject(CatalogSettingsService);
   readonly open = signal(false);
 
   readonly items = this.itemsSignal.asReadonly();
@@ -55,11 +57,17 @@ export class CartService {
 
     const weightKg =
       product.pricedBy === 'kg' ? (options.weightKg ?? 1) : 0;
-    if (product.pricedBy === 'kg' && (weightKg < 0.5 || weightKg > 5)) return;
+    if (product.pricedBy === 'kg' && (weightKg < 0.5 || weightKg > 3)) return;
 
     const allergyNotes = cleanText(options.allergyNotes ?? '', 120);
     const customMessage = cleanText(options.customMessage ?? '', 80);
-    const unitPrice = calcUnitPrice(product, weightKg || 1, theme);
+    const unitPrice = calcUnitPrice(
+      product,
+      weightKg || 1,
+      theme,
+      flavour,
+      this.catalogSettings.themeSurchargeKes()
+    );
 
     this.itemsSignal.update((items) => {
       const existing = items.find(
@@ -158,7 +166,7 @@ export class CartService {
     });
 
     const parts = [
-      `Hello Bree's Bakery!`,
+      `Hello Bee's Blossom Bakes!`,
       `I'd like to place an order.`,
       '',
       itemBlocks.join('\n\n'),
