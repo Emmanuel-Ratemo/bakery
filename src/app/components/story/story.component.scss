@@ -59,6 +59,38 @@
   font-weight: 500;
 }
 
+.visit__link {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+}
+
+.visit__social {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.65rem;
+  margin-top: 2rem;
+}
+
+.visit__social-link {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.55rem 1rem;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, white 35%, transparent);
+  color: white;
+  text-decoration: none;
+  font-size: 0.88rem;
+  font-weight: 600;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.visit__social-link:hover {
+  background: color-mix(in srgb, white 14%, transparent);
+  border-color: white;
+}
+
 @media (min-width: 768px) {
   .visit {
     padding: 5rem 2rem;

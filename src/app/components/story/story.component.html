@@ -16,8 +16,39 @@
       </div>
       <div>
         <h3>WhatsApp</h3>
-        <p>{{ whatsappDisplay }}</p>
+        <p>
+          <a class="visit__link" [href]="social.whatsapp.url" target="_blank" rel="noopener noreferrer">
+            {{ social.whatsapp.label }}
+          </a>
+        </p>
       </div>
     </div>
+
+    <nav class="visit__social" aria-label="Follow us">
+      <a
+        class="visit__social-link"
+        [href]="social.instagram.url"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        Instagram
+      </a>
+      <a
+        class="visit__social-link"
+        [href]="social.tiktok.url"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        TikTok
+      </a>
+      <a
+        class="visit__social-link"
+        [href]="social.whatsapp.url"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        WhatsApp
+      </a>
+    </nav>
   </div>
 </section>

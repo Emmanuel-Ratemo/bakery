@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { WHATSAPP_NUMBER } from '../../data/products';
+import { SOCIAL_LINKS, WHATSAPP_NUMBER } from '../../data/products';
 
 @Component({
   selector: 'app-story',
@@ -8,6 +8,7 @@ import { WHATSAPP_NUMBER } from '../../data/products';
   styleUrl: './story.component.scss',
 })
 export class StoryComponent {
+  readonly social = SOCIAL_LINKS;
   readonly whatsappDisplay = WHATSAPP_NUMBER.replace(
     /^(\d{3})(\d{3})(\d{3})(\d+)$/,
     '+$1 $2 $3 $4'

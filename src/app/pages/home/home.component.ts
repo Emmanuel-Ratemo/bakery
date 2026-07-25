@@ -2,7 +2,6 @@ import { Component } from '@angular/core';
 import { HeaderComponent } from '../../components/header/header.component';
 import { HeroComponent } from '../../components/hero/hero.component';
 import { MenuComponent } from '../../components/menu/menu.component';
-import { PromoComponent } from '../../components/promo/promo.component';
 import { ExploreComponent } from '../../components/explore/explore.component';
 import { StoryComponent } from '../../components/story/story.component';
 import { FooterComponent } from '../../components/footer/footer.component';
@@ -16,7 +15,6 @@ import { WhatsappFloatComponent } from '../../components/whatsapp-float/whatsapp
     HeaderComponent,
     HeroComponent,
     MenuComponent,
-    PromoComponent,
     ExploreComponent,
     StoryComponent,
     FooterComponent,

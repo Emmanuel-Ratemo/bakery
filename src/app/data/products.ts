@@ -320,5 +320,21 @@ export const GALLERY: { id: string; category: string; image: string; alt: string
 
 export const WHATSAPP_NUMBER = '254768578254';
 
+/** Social profiles from Bee's Blossom Bakes branding */
+export const SOCIAL_LINKS = {
+  instagram: {
+    label: "Bee's Blossom Bakes",
+    url: 'https://www.instagram.com/beesblossombakes/',
+  },
+  tiktok: {
+    label: "Bee's Blossom Bakes",
+    url: 'https://www.tiktok.com/@beesblossombakes',
+  },
+  whatsapp: {
+    label: '0768578254',
+    url: `https://wa.me/${WHATSAPP_NUMBER}`,
+  },
+} as const;
+
 export const BRAND_NAME = "Bee's Blossom Bakes";
 export const BRAND_TAGLINE = 'Blooming delights in every bite';
