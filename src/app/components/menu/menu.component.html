@@ -5,7 +5,7 @@
   </p>
 
   <div class="products__grid">
-    @for (product of products; track product.id) {
+    @for (product of products(); track product.id) {
       <article class="card">
         <div class="card__media">
           <img [src]="product.image" [alt]="product.name" loading="lazy" />

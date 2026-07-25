@@ -1,0 +1,103 @@
+<div class="admin">
+  <header class="admin__top">
+    <div>
+      <p class="admin__eyebrow">Bree's Bakery</p>
+      <h1>Admin</h1>
+    </div>
+    <div class="admin__top-actions">
+      <a routerLink="/" class="admin__link">View store</a>
+      @if (auth.isLoggedIn()) {
+        <button type="button" class="admin__ghost" (click)="logout()">Log out</button>
+      }
+    </div>
+  </header>
+
+  @if (!auth.isLoggedIn()) {
+    <section class="admin__login" aria-label="Admin login">
+      <h2>Sign in</h2>
+      <p>Upload images and change prices. With the local admin API running, files save into the project.</p>
+      <label class="admin__field">
+        <span>Password</span>
+        <input
+          type="password"
+          name="password"
+          [(ngModel)]="password"
+          (keyup.enter)="login()"
+          autocomplete="current-password"
+        />
+      </label>
+      @if (loginError()) {
+        <p class="admin__error">{{ loginError() }}</p>
+      }
+      <button type="button" class="admin__primary" (click)="login()">Sign in</button>
+    </section>
+  } @else {
+    <section class="admin__panel">
+      <div class="admin__toolbar">
+        <p>
+          @if (products.usingFileApi()) {
+            File mode: uploads go to <code>public/assets/images/products</code> and update <code>products.ts</code>.
+          } @else {
+            Browser-only mode. Run <code>npm run admin-api</code> in another terminal so uploads write to files.
+          }
+        </p>
+        <button type="button" class="admin__ghost" (click)="resetAll()">Reset all</button>
+      </div>
+
+      @if (statusMessage()) {
+        <p class="admin__status">{{ statusMessage() }}</p>
+      }
+
+      <div class="admin__grid">
+        @for (product of products.products(); track product.id) {
+          <article class="admin-card">
+            <div class="admin-card__media">
+              <img [src]="product.image" [alt]="product.name" />
+            </div>
+            <div class="admin-card__body">
+              <h2>{{ product.name }}</h2>
+              <p class="admin-card__meta">
+                {{ product.category }} ·
+                {{ product.pricedBy === 'kg' ? 'per kg' : 'per piece' }}
+              </p>
+
+              <label class="admin__field">
+                <span>Price (KES)</span>
+                <input
+                  type="number"
+                  min="0"
+                  step="50"
+                    [ngModel]="draftPrices()[product.id]"
+                  (ngModelChange)="setDraftPrice(product.id, $event)"
+                />
+              </label>
+
+              <div class="admin-card__actions">
+                <button type="button" class="admin__primary" (click)="savePrice(product)">
+                  Save price
+                </button>
+                <label class="admin__upload">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    (change)="onImageSelected(product, $event)"
+                    [disabled]="busyId() === product.id"
+                  />
+                  {{ busyId() === product.id ? 'Uploading…' : 'Upload image' }}
+                </label>
+                <button type="button" class="admin__ghost" (click)="resetProduct(product)">
+                  Reset
+                </button>
+              </div>
+
+              <p class="admin-card__current">
+                Current:
+                {{ product.pricePerUnit | currency: 'KES':'symbol-narrow':'1.0-0' }}
+              </p>
+            </div>
+          </article>
+        }
+      </div>
+    </section>
+  }
+</div>

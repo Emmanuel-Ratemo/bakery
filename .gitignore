@@ -40,3 +40,10 @@ testem.log
 # System files
 .DS_Store
 Thumbs.db
+
+# Secrets / local admin password (never commit)
+.env
+.env.local
+
+# Generated hash file — created by npm start / CI from ADMIN_PASSWORD
+src/app/admin/admin.credentials.ts

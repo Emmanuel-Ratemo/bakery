@@ -31,10 +31,15 @@ jobs:
         run: npm ci
 
       - name: Build
-        run: npm run build -- --configuration=production --base-href=/${{ github.event.repository.name }}/
+        env:
+          ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
+        run: npm run build:ci -- --configuration=production --base-href=/${{ github.event.repository.name }}/
 
       - name: Add .nojekyll
         run: touch dist/brees-bakery/browser/.nojekyll
+
+      - name: SPA fallback for /admin routes
+        run: cp dist/brees-bakery/browser/index.html dist/brees-bakery/browser/404.html
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3

@@ -3,9 +3,12 @@
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
-    "start": "ng serve",
-    "build": "ng build",
-    "build:pages": "ng build --configuration=production --base-href=/bakery/",
+    "credentials": "node scripts/generate-admin-credentials.mjs",
+    "start": "node scripts/generate-admin-credentials.mjs && ng serve --host 127.0.0.1 --port 4200",
+    "admin-api": "node scripts/admin-api.mjs",
+    "build": "node scripts/generate-admin-credentials.mjs && ng build",
+    "build:ci": "node scripts/generate-admin-credentials.mjs --require && ng build",
+    "build:pages": "node scripts/generate-admin-credentials.mjs --require && ng build --configuration=production --base-href=/bakery/",
     "watch": "ng build --watch --configuration development",
     "test": "ng test"
   },

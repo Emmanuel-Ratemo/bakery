@@ -3,7 +3,6 @@ import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import {
   CAKE_WEIGHTS_KG,
-  PRODUCTS,
   THEME_SURCHARGE_KES,
   calcUnitPrice,
   formatWeight,
@@ -11,6 +10,7 @@ import {
 } from '../../data/products';
 import { Product } from '../../models/product.model';
 import { CartService } from '../../services/cart.service';
+import { ProductService } from '../../services/product.service';
 
 @Component({
   selector: 'app-menu',
@@ -21,7 +21,8 @@ import { CartService } from '../../services/cart.service';
 })
 export class MenuComponent {
   readonly cart = inject(CartService);
-  readonly products = PRODUCTS;
+  private readonly catalog = inject(ProductService);
+  readonly products = this.catalog.products;
   readonly weights = CAKE_WEIGHTS_KG;
   readonly themeSurcharge = THEME_SURCHARGE_KES;
   readonly formatWeight = formatWeight;
