@@ -30,10 +30,22 @@ jobs:
       - name: Install
         run: npm ci
 
-      - name: Build
+      - name: Generate admin credentials
         env:
           ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
-        run: npm run build:ci -- --configuration=production --base-href=/${{ github.event.repository.name }}/
+        run: |
+          if [ -z "$ADMIN_PASSWORD" ]; then
+            echo "::error::ADMIN_PASSWORD secret is empty or missing."
+            echo "Add a Repository secret named exactly ADMIN_PASSWORD:"
+            echo "https://github.com/${{ github.repository }}/settings/secrets/actions"
+            echo "Do not use an Environment secret unless this job also uses that environment."
+            exit 1
+          fi
+          echo "ADMIN_PASSWORD secret is set (length ${#ADMIN_PASSWORD})."
+          node scripts/generate-admin-credentials.mjs --require
+
+      - name: Build
+        run: npx ng build --configuration=production --base-href=/${{ github.event.repository.name }}/
 
       - name: Add .nojekyll
         run: touch dist/brees-bakery/browser/.nojekyll
