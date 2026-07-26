@@ -8,11 +8,14 @@ import {
   normalizeCatalogSettings,
 } from '../data/catalog-settings';
 import { AdminAuthService } from './admin-auth.service';
+import { GithubPublishService } from './github-publish.service';
+import { SaveTarget } from './product.service';
 
 @Injectable({ providedIn: 'root' })
 export class CatalogSettingsService {
   private readonly http = inject(HttpClient);
   private readonly auth = inject(AdminAuthService);
+  private readonly github = inject(GithubPublishService);
   private readonly settingsSignal = signal<CatalogSettings>({
     ...DEFAULT_CATALOG_SETTINGS,
     occasionThemes: [...DEFAULT_CATALOG_SETTINGS.occasionThemes],
@@ -32,7 +35,7 @@ export class CatalogSettingsService {
     void this.bootstrap();
   }
 
-  async save(next: CatalogSettings): Promise<CatalogSettings> {
+  async save(next: CatalogSettings): Promise<{ settings: CatalogSettings; target: SaveTarget }> {
     const normalized = normalizeCatalogSettings(next);
 
     if (this.apiReady()) {
@@ -43,15 +46,25 @@ export class CatalogSettingsService {
         })
       );
       this.settingsSignal.set(normalizeCatalogSettings(saved));
-      return this.settingsSignal();
+      return { settings: this.settingsSignal(), target: 'file-api' };
+    }
+
+    if (this.github.getToken()) {
+      await this.github.putJson(
+        'public/catalog-settings.json',
+        normalized,
+        'Admin: update occasion themes and surcharge'
+      );
+      this.settingsSignal.set(normalized);
+      return { settings: normalized, target: 'github' };
     }
 
     this.settingsSignal.set(normalized);
     this.writeBrowser();
-    return normalized;
+    return { settings: normalized, target: 'browser' };
   }
 
-  async reset(): Promise<CatalogSettings> {
+  async reset(): Promise<{ settings: CatalogSettings; target: SaveTarget }> {
     return this.save({ ...DEFAULT_CATALOG_SETTINGS });
   }
 

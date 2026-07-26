@@ -7,7 +7,8 @@ import { DEFAULT_CATALOG_SETTINGS } from '../data/catalog-settings';
 import { Product } from '../models/product.model';
 import { AdminAuthService } from '../services/admin-auth.service';
 import { CatalogSettingsService } from '../services/catalog-settings.service';
-import { ProductService } from '../services/product.service';
+import { GithubPublishService } from '../services/github-publish.service';
+import { ProductService, SaveTarget } from '../services/product.service';
 
 @Component({
   selector: 'app-admin',
@@ -20,8 +21,10 @@ export class AdminComponent {
   readonly auth = inject(AdminAuthService);
   readonly products = inject(ProductService);
   readonly catalogSettings = inject(CatalogSettingsService);
+  readonly github = inject(GithubPublishService);
 
   password = '';
+  githubToken = '';
   loginError = signal('');
   statusMessage = signal('');
   readonly draftPrices = signal<Record<string, number>>({});
@@ -53,8 +56,25 @@ export class AdminComponent {
 
   logout(): void {
     this.auth.logout();
+    this.github.clearToken();
+    this.githubToken = '';
     this.password = '';
     this.statusMessage.set('');
+  }
+
+  saveGithubToken(): void {
+    this.github.setToken(this.githubToken);
+    this.githubToken = '';
+    this.statusMessage.set(
+      this.github.hasToken()
+        ? 'GitHub token saved for this browser tab. Uploads will commit to the live repo.'
+        : 'GitHub token cleared.'
+    );
+  }
+
+  clearGithubToken(): void {
+    this.github.clearToken();
+    this.statusMessage.set('GitHub token cleared.');
   }
 
   seedDrafts(): void {
@@ -93,6 +113,14 @@ export class AdminComponent {
     this.draftThemes.update((themes) => themes.filter((_, i) => i !== index));
   }
 
+  private describeSave(target: SaveTarget, okMessage: string): string {
+    if (target === 'file-api') return okMessage;
+    if (target === 'github') {
+      return `${okMessage} Committed to GitHub — live site refreshes after Pages redeploys (about 1–2 min).`;
+    }
+    return `${okMessage} Saved in this browser only. On the live site, paste a GitHub token below so everyone sees the change.`;
+  }
+
   async saveThemes(): Promise<void> {
     const themes = this.draftThemes()
       .map((t) => t.trim())
@@ -109,15 +137,13 @@ export class AdminComponent {
 
     this.busyId.set('themes');
     try {
-      await this.catalogSettings.save({
+      const { target } = await this.catalogSettings.save({
         themeSurchargeKes: surcharge,
         occasionThemes: themes,
       });
       this.seedDrafts();
       this.statusMessage.set(
-        this.catalogSettings.usingFileApi()
-          ? 'Saved occasion themes and price to catalog-settings.json + products.ts.'
-          : 'Saved occasion themes and price in this browser only. Run npm run admin-api to write files.'
+        this.describeSave(target, 'Saved occasion themes and add-on price.')
       );
     } catch (error) {
       this.statusMessage.set(
@@ -132,9 +158,11 @@ export class AdminComponent {
     if (!confirm('Reset occasion themes and theme price to defaults?')) return;
     this.busyId.set('themes');
     try {
-      await this.catalogSettings.reset();
+      const { target } = await this.catalogSettings.reset();
       this.seedDrafts();
-      this.statusMessage.set('Occasion themes reset to defaults.');
+      this.statusMessage.set(
+        this.describeSave(target, 'Occasion themes reset to defaults.')
+      );
     } catch (error) {
       this.statusMessage.set(
         error instanceof Error ? error.message : 'Could not reset themes.'
@@ -152,11 +180,9 @@ export class AdminComponent {
     }
     this.busyId.set(product.id);
     try {
-      await this.products.updatePrice(product.id, amount);
+      const target = await this.products.updatePrice(product.id, amount);
       this.statusMessage.set(
-        this.products.usingFileApi()
-          ? `Saved ${product.name} price to files (products.ts + catalog-overrides.json).`
-          : `Saved ${product.name} price in this browser only. Start admin-api to write files.`
+        this.describeSave(target, `Saved ${product.name} price.`)
       );
     } catch (error) {
       this.statusMessage.set(
@@ -176,11 +202,9 @@ export class AdminComponent {
     this.statusMessage.set('');
     try {
       const dataUrl = await fileToCompressedDataUrl(file);
-      await this.products.updateImage(product.id, dataUrl);
+      const target = await this.products.updateImage(product.id, dataUrl);
       this.statusMessage.set(
-        this.products.usingFileApi()
-          ? `Saved ${product.name} image to public/assets/images/products and updated products.ts.`
-          : `Saved ${product.name} image in this browser only. Run npm run admin-api to write files.`
+        this.describeSave(target, `Saved ${product.name} image.`)
       );
     } catch (error) {
       this.statusMessage.set(
@@ -195,7 +219,7 @@ export class AdminComponent {
   async resetProduct(product: Product): Promise<void> {
     this.busyId.set(product.id);
     try {
-      await this.products.resetProduct(product.id);
+      const target = await this.products.resetProduct(product.id);
       const restored = this.products.getById(product.id);
       if (restored) {
         this.draftPrices.update((current) => ({
@@ -203,7 +227,9 @@ export class AdminComponent {
           [product.id]: restored.pricePerUnit,
         }));
       }
-      this.statusMessage.set(`Reset ${product.name} to defaults.`);
+      this.statusMessage.set(
+        this.describeSave(target, `Reset ${product.name}.`)
+      );
     } catch (error) {
       this.statusMessage.set(
         error instanceof Error ? error.message : 'Could not reset product.'

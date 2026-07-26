@@ -141,6 +141,47 @@
   gap: 1rem;
 }
 
+.admin-github {
+  margin: 0 0 1.25rem;
+  padding: 1.15rem;
+  background: white;
+  border: 1px solid var(--line);
+  display: grid;
+  gap: 0.75rem;
+}
+
+.admin-github h2 {
+  margin: 0;
+  font-size: 1.15rem;
+}
+
+.admin-github p {
+  margin: 0;
+  color: var(--ink-soft);
+  line-height: 1.45;
+  font-size: 0.9rem;
+}
+
+.admin-github__row {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 0.5rem;
+}
+
+.admin-github__row input {
+  border: 1px solid var(--line);
+  border-radius: 0.4rem;
+  padding: 0.7rem 0.8rem;
+  font: inherit;
+  font-size: 0.95rem;
+}
+
+@media (max-width: 700px) {
+  .admin-github__row {
+    grid-template-columns: 1fr;
+  }
+}
+
 .admin-themes__head {
   display: flex;
   flex-wrap: wrap;

@@ -7,17 +7,21 @@ import { PRODUCTS } from '../data/products';
 import { Product } from '../models/product.model';
 import { AdminAuthService } from './admin-auth.service';
 import { CatalogSettingsService } from './catalog-settings.service';
+import { GithubPublishService } from './github-publish.service';
 
 export interface ProductOverride {
   pricePerUnit?: number;
   image?: string;
 }
 
+export type SaveTarget = 'file-api' | 'github' | 'browser';
+
 @Injectable({ providedIn: 'root' })
 export class ProductService {
   private readonly http = inject(HttpClient);
   private readonly auth = inject(AdminAuthService);
   private readonly catalogSettings = inject(CatalogSettingsService);
+  private readonly github = inject(GithubPublishService);
   private readonly overrides = signal<Record<string, ProductOverride>>({});
   private readonly apiReady = signal(false);
 
@@ -53,7 +57,7 @@ export class ProductService {
     };
   }
 
-  async updatePrice(id: string, pricePerUnit: number): Promise<void> {
+  async updatePrice(id: string, pricePerUnit: number): Promise<SaveTarget> {
     if (!Number.isFinite(pricePerUnit) || pricePerUnit < 0) {
       throw new Error('Enter a valid price.');
     }
@@ -67,14 +71,21 @@ export class ProductService {
         })
       );
       this.patchLocal(id, { pricePerUnit: rounded });
-      return;
+      return 'file-api';
+    }
+
+    if (this.github.getToken()) {
+      await this.publishOverrides({ [id]: { pricePerUnit: rounded } });
+      this.patchLocal(id, { pricePerUnit: rounded });
+      return 'github';
     }
 
     this.patchLocal(id, { pricePerUnit: rounded });
     this.writeBrowserOverrides();
+    return 'browser';
   }
 
-  async updateImage(id: string, imageDataUrl: string): Promise<void> {
+  async updateImage(id: string, imageDataUrl: string): Promise<SaveTarget> {
     if (!imageDataUrl.startsWith('data:image/')) {
       throw new Error('Please choose an image file.');
     }
@@ -87,16 +98,30 @@ export class ProductService {
         })
       );
       this.patchLocal(id, { image: response.image });
-      return;
+      return 'file-api';
+    }
+
+    if (this.github.getToken()) {
+      const parsed = this.parseDataUrl(imageDataUrl);
+      const publicPath = `assets/images/products/${id}.${parsed.ext}`;
+      await this.github.putFile(
+        `public/${publicPath}`,
+        parsed.base64,
+        `Admin: update ${id} product image`
+      );
+      await this.publishOverrides({ [id]: { image: publicPath } });
+      this.patchLocal(id, { image: publicPath });
+      return 'github';
     }
 
     this.patchLocal(id, { image: imageDataUrl });
     this.writeBrowserOverrides();
+    return 'browser';
   }
 
-  async resetProduct(id: string): Promise<void> {
+  async resetProduct(id: string): Promise<SaveTarget> {
     const original = this.getOriginal(id);
-    if (!original) return;
+    if (!original) return 'browser';
 
     if (this.apiReady()) {
       await firstValueFrom(
@@ -110,17 +135,31 @@ export class ProductService {
           },
         })
       );
-      this.patchLocal(id, {
-        pricePerUnit: original.pricePerUnit,
-        image: original.image,
-      });
-      // Clear override so catalog defaults apply after restore
       this.overrides.update((current) => {
         const next = { ...current };
         delete next[id];
         return next;
       });
-      return;
+      return 'file-api';
+    }
+
+    if (this.github.getToken()) {
+      const current =
+        (await this.github.readJson<Record<string, ProductOverride>>(
+          'public/catalog-overrides.json'
+        )) || {};
+      delete current[id];
+      await this.github.putJson(
+        'public/catalog-overrides.json',
+        current,
+        `Admin: reset ${id} product overrides`
+      );
+      this.overrides.update((existing) => {
+        const next = { ...existing };
+        delete next[id];
+        return next;
+      });
+      return 'github';
     }
 
     this.overrides.update((current) => {
@@ -129,12 +168,42 @@ export class ProductService {
       return next;
     });
     this.writeBrowserOverrides();
+    return 'browser';
   }
 
   async resetAll(): Promise<void> {
     for (const product of PRODUCTS) {
       await this.resetProduct(product.id);
     }
+  }
+
+  private async publishOverrides(
+    patch: Record<string, ProductOverride>
+  ): Promise<void> {
+    const current =
+      (await this.github.readJson<Record<string, ProductOverride>>(
+        'public/catalog-overrides.json'
+      )) || {};
+    for (const [id, values] of Object.entries(patch)) {
+      current[id] = { ...current[id], ...values };
+    }
+    await this.github.putJson(
+      'public/catalog-overrides.json',
+      current,
+      'Admin: update catalog overrides'
+    );
+  }
+
+  private parseDataUrl(dataUrl: string): { ext: string; base64: string } {
+    const match = dataUrl.match(/^data:(image\/[a-zA-Z0-9.+-]+);base64,(.+)$/);
+    if (!match) throw new Error('Invalid image data.');
+    const mime = match[1];
+    const ext = mime.includes('png')
+      ? 'png'
+      : mime.includes('webp')
+        ? 'webp'
+        : 'jpg';
+    return { ext, base64: match[2] };
   }
 
   private async bootstrap(): Promise<void> {
