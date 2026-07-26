@@ -1,5 +1,9 @@
-import { Injectable, signal } from '@angular/core';
-import { ADMIN_GITHUB_TOKEN_KEY } from '../admin/admin.config';
+import { Injectable, computed, signal } from '@angular/core';
+import {
+  ADMIN_GITHUB_OWNER,
+  ADMIN_GITHUB_REPO,
+  ADMIN_GITHUB_TOKEN,
+} from '../admin/admin.publish';
 
 export interface GitHubRepoTarget {
   owner: string;
@@ -9,33 +13,22 @@ export interface GitHubRepoTarget {
 
 @Injectable({ providedIn: 'root' })
 export class GithubPublishService {
-  private readonly token = signal<string | null>(this.readToken());
-  readonly hasToken = signal(!!this.token());
+  /** Token from GitHub secret / .env (build-time). Never paste in the browser. */
+  private readonly builtInToken = ADMIN_GITHUB_TOKEN.trim();
 
   readonly target: GitHubRepoTarget = {
-    owner: 'Emmanuel-Ratemo',
-    repo: 'bakery',
+    owner: ADMIN_GITHUB_OWNER || 'Emmanuel-Ratemo',
+    repo: ADMIN_GITHUB_REPO || 'bakery',
     branch: 'main',
   };
 
-  setToken(token: string): void {
-    const value = token.trim();
-    this.token.set(value || null);
-    this.hasToken.set(!!value);
-    try {
-      if (value) sessionStorage.setItem(ADMIN_GITHUB_TOKEN_KEY, value);
-      else sessionStorage.removeItem(ADMIN_GITHUB_TOKEN_KEY);
-    } catch {
-      // ignore
-    }
-  }
-
-  clearToken(): void {
-    this.setToken('');
-  }
+  readonly hasToken = computed(() => !!this.builtInToken);
+  private readonly tokenSignal = signal<string | null>(
+    this.builtInToken || null
+  );
 
   getToken(): string | null {
-    return this.token();
+    return this.tokenSignal();
   }
 
   /**
@@ -98,10 +91,10 @@ export class GithubPublishService {
   }
 
   private requireToken(): string {
-    const token = this.token();
+    const token = this.tokenSignal();
     if (!token) {
       throw new Error(
-        'Add a GitHub token in Admin to save changes to the live site.'
+        'ADMIN_GITHUB_TOKEN is not configured. Add it as a GitHub Environment secret (github-pages) or in local .env, then redeploy / restart.'
       );
     }
     return token;
@@ -121,14 +114,6 @@ export class GithubPublishService {
       return body.message || `GitHub error (${response.status})`;
     } catch {
       return `GitHub error (${response.status})`;
-    }
-  }
-
-  private readToken(): string | null {
-    try {
-      return sessionStorage.getItem(ADMIN_GITHUB_TOKEN_KEY);
-    } catch {
-      return null;
     }
   }
 }

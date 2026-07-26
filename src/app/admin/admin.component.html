@@ -38,45 +38,18 @@
           @if (products.usingFileApi()) {
             Local file mode: uploads write into this project folder.
           } @else if (github.hasToken()) {
-            GitHub mode: uploads commit to
-            <code>{{ github.target.owner }}/{{ github.target.repo }}</code>
-            and update the live site after Pages redeploys.
+            GitHub mode: uploads commit with the deploy secret
+            <code>ADMIN_GITHUB_TOKEN</code> to
+            <code>{{ github.target.owner }}/{{ github.target.repo }}</code>.
+            Live site refreshes after Pages redeploys.
           } @else {
-            Live site mode: changes stay in this browser unless you add a GitHub
-            token below (so everyone sees them) or use local
-            <code>npm run admin-api</code>.
+            Browser-only mode: changes stay on this device. Add Environment secret
+            <code>ADMIN_GITHUB_TOKEN</code> on github-pages and redeploy so live
+            uploads update the public site — or run <code>npm run admin-api</code> locally.
           }
         </p>
         <button type="button" class="admin__ghost" (click)="resetAll()">Reset all</button>
       </div>
-
-      @if (!products.usingFileApi()) {
-        <section class="admin-github" aria-label="GitHub publish token">
-          <h2>Update live site from Admin</h2>
-          <p>
-            Create a GitHub Personal Access Token with
-            <strong>Contents: Read and write</strong> for this repo, paste it here,
-            then upload images. Token stays in this tab only.
-          </p>
-          <div class="admin-github__row">
-            <input
-              type="password"
-              name="githubToken"
-              [(ngModel)]="githubToken"
-              autocomplete="off"
-              placeholder="ghp_… or github_pat_…"
-            />
-            <button type="button" class="admin__primary" (click)="saveGithubToken()">
-              {{ github.hasToken() ? 'Replace token' : 'Save token' }}
-            </button>
-            @if (github.hasToken()) {
-              <button type="button" class="admin__ghost" (click)="clearGithubToken()">
-                Clear
-              </button>
-            }
-          </div>
-        </section>
-      }
 
       @if (statusMessage()) {
         <p class="admin__status">{{ statusMessage() }}</p>

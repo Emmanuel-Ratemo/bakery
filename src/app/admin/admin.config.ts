@@ -4,7 +4,6 @@ import { ADMIN_PASSWORD_HASH } from './admin.credentials';
 export const ADMIN_SESSION_KEY = 'brees-bakery-admin-session';
 export const PRODUCT_OVERRIDES_KEY = 'brees-bakery-product-overrides';
 export const CATALOG_SETTINGS_KEY = 'brees-bakery-catalog-settings';
-export const ADMIN_GITHUB_TOKEN_KEY = 'brees-bakery-admin-github-token';
 
 export { ADMIN_PASSWORD_HASH };
 

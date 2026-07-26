@@ -35,16 +35,22 @@ jobs:
         env:
           ADMIN_PASSWORD_SECRET: ${{ secrets.ADMIN_PASSWORD }}
           ADMIN_PASSWORD_VAR: ${{ vars.ADMIN_PASSWORD }}
+          ADMIN_GITHUB_TOKEN: ${{ secrets.ADMIN_GITHUB_TOKEN }}
+          ADMIN_GITHUB_OWNER: ${{ github.repository_owner }}
+          ADMIN_GITHUB_REPO: ${{ github.event.repository.name }}
         run: |
           ADMIN_PASSWORD="${ADMIN_PASSWORD_SECRET:-$ADMIN_PASSWORD_VAR}"
           export ADMIN_PASSWORD
           if [ -z "$ADMIN_PASSWORD" ]; then
             echo "::error::ADMIN_PASSWORD is empty or missing."
-            echo "Add it here as a Repository secret (preferred) OR variable, named exactly ADMIN_PASSWORD:"
-            echo "Secrets: https://github.com/${{ github.repository }}/settings/secrets/actions"
-            echo "Variables: https://github.com/${{ github.repository }}/settings/variables/actions"
-            echo "Or under Environment github-pages → Environment secrets."
+            echo "Add it as a Repository or github-pages Environment secret named ADMIN_PASSWORD."
             exit 1
+          fi
+          if [ -z "$ADMIN_GITHUB_TOKEN" ]; then
+            echo "::warning::ADMIN_GITHUB_TOKEN is empty. Live Admin image uploads will stay browser-only."
+            echo "Add a fine-grained PAT (Contents: Read and write) as Environment secret ADMIN_GITHUB_TOKEN on github-pages."
+          else
+            echo "ADMIN_GITHUB_TOKEN is set (length ${#ADMIN_GITHUB_TOKEN})."
           fi
           echo "ADMIN_PASSWORD is set (length ${#ADMIN_PASSWORD})."
           node scripts/generate-admin-credentials.mjs --require

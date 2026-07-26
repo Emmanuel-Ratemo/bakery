@@ -24,7 +24,6 @@ export class AdminComponent {
   readonly github = inject(GithubPublishService);
 
   password = '';
-  githubToken = '';
   loginError = signal('');
   statusMessage = signal('');
   readonly draftPrices = signal<Record<string, number>>({});
@@ -56,25 +55,8 @@ export class AdminComponent {
 
   logout(): void {
     this.auth.logout();
-    this.github.clearToken();
-    this.githubToken = '';
     this.password = '';
     this.statusMessage.set('');
-  }
-
-  saveGithubToken(): void {
-    this.github.setToken(this.githubToken);
-    this.githubToken = '';
-    this.statusMessage.set(
-      this.github.hasToken()
-        ? 'GitHub token saved for this browser tab. Uploads will commit to the live repo.'
-        : 'GitHub token cleared.'
-    );
-  }
-
-  clearGithubToken(): void {
-    this.github.clearToken();
-    this.statusMessage.set('GitHub token cleared.');
   }
 
   seedDrafts(): void {
@@ -118,7 +100,7 @@ export class AdminComponent {
     if (target === 'github') {
       return `${okMessage} Committed to GitHub — live site refreshes after Pages redeploys (about 1–2 min).`;
     }
-    return `${okMessage} Saved in this browser only. On the live site, paste a GitHub token below so everyone sees the change.`;
+    return `${okMessage} Saved in this browser only. Add Environment secret ADMIN_GITHUB_TOKEN on github-pages and redeploy so live uploads update the public site.`;
   }
 
   async saveThemes(): Promise<void> {

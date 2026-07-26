@@ -45,5 +45,6 @@ Thumbs.db
 .env
 .env.local
 
-# Generated hash file — created by npm start / CI from ADMIN_PASSWORD
+# Generated secrets/config — created by npm start / CI
 src/app/admin/admin.credentials.ts
+src/app/admin/admin.publish.ts

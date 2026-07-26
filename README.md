@@ -13,7 +13,7 @@ cp .env.example .env
 npm start
 ```
 
-For uploads that write into the repo:
+For uploads that write into the repo on your machine:
 
 ```bash
 npm run admin-api
@@ -21,17 +21,16 @@ npm run admin-api
 
 Open http://127.0.0.1:4200/
 
-## Build
+## GitHub Pages secrets
 
-```bash
-npm run build
-```
+Add these under **Settings → Environments → github-pages → Environment secrets** (or Actions repository secrets):
 
-## GitHub Pages
+| Secret | Purpose |
+|--------|---------|
+| `ADMIN_PASSWORD` | Admin login (hashed into the build) |
+| `ADMIN_GITHUB_TOKEN` | Fine-grained PAT with **Contents: Read and write** on this repo only — lets live Admin commit image/price updates |
 
-1. In the GitHub repo: **Settings → Secrets and variables → Actions**
-2. Add secret `ADMIN_PASSWORD` (same value you use in local `.env`)
-3. Push to `main` — deploy uses that secret at **build time** only
+Then push to `main` (or re-run the deploy workflow).
 
 Live site: https://emmanuel-ratemo.github.io/bakery/
 
@@ -39,8 +38,6 @@ Live site: https://emmanuel-ratemo.github.io/bakery/
 
 Open `/admin`.
 
-The live site never receives the GitHub Secret itself. The deploy job turns the secret into a **SHA-256 hash** baked into the app. Login compares hashes in the browser.
+**Password:** not stored in source. CI writes a SHA-256 hash into the app at build time.
 
-- Password is **not** stored in the public source repo
-- A determined person can still try passwords against the public hash (use a long unique password)
-- File writes still need `npm run admin-api` on your machine with `.env`
+**Live image uploads:** when `ADMIN_GITHUB_TOKEN` is set in the github-pages environment, deploy bakes it into the admin client so uploads can commit to `main` and Pages redeploys. Prefer a **fine-grained** token limited to this repo. Anyone who can download the built JS could extract that token — rotate it if the site is compromised. For stronger security, only change images locally with `npm run admin-api` and push.
